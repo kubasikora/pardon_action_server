@@ -20,7 +20,7 @@ Node currently listens to two topics:
 - odometry (`nav_msgs/Odometry`, default: `/mobile_base_controller/odom`) - current position of the robot,
 - jointStates (`sensor_msgs/JointState`, default: `/joint_states`) - current state of joints (we are interested in head state).
 
-## Topic publishments
+## Topic publications
 
 Node publishes on one topic:
 - velocity (`geometry_msgs/Twist`, default: `/key_vel`) - velocity commands to mobile base controller.  
