@@ -3,6 +3,7 @@
 #include<pardon/TurnToHumanAction.h>
 #include<std_msgs/String.h>
 #include<geometry_msgs/Quaternion.h>
+#include<nav_msgs/Odometry.h>
 
 class TurnToHumanAction {
   protected:
@@ -12,9 +13,17 @@ class TurnToHumanAction {
     pardon::TurnToHumanFeedback feedback_;
     pardon::TurnToHumanResult result_;
 
+    ros::Subscriber odometrySub_;
+    nav_msgs::Odometry currentOdom_;
+
+    void robotOdometryCallback(const nav_msgs::Odometry message){
+        currentOdom_ = message;
+    }
+
   public:
-    TurnToHumanAction(std::string name) : as_(nh_, name, boost::bind(&TurnToHumanAction::executeCallback, this, _1), false), actionName_(name){
+    TurnToHumanAction(std::string name, std::string odometryTopic = "odom") : as_(nh_, name, boost::bind(&TurnToHumanAction::executeCallback, this, _1), false), actionName_(name){
         as_.start();
+        odometrySub_ = nh_.subscribe(odometryTopic, 1000, &TurnToHumanAction::robotOdometryCallback, this);
     }
 
     ~TurnToHumanAction(){}
@@ -36,7 +45,7 @@ class TurnToHumanAction {
             feedback_.status = feedbackStatus;
 
             geometry_msgs::Quaternion feedbackOrientation;
-            feedbackOrientation.x = 1.0 * i;
+            feedbackOrientation.x = currentOdom_.pose.pose.position.x;
             feedback_.orientation = feedbackOrientation;
 
             as_.publishFeedback(feedback_);
@@ -47,7 +56,7 @@ class TurnToHumanAction {
             std_msgs::String resultStatus;
             resultStatus.data = "moved";
             result_.status = resultStatus;
-            
+
             ROS_INFO("%s: Succeeded", actionName_.c_str());
             as_.setSucceeded(result_);
         }
