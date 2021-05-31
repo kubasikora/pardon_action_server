@@ -3,29 +3,29 @@
 
 void TurnToHumanActionServer::robotOdometryCallback(const nav_msgs::Odometry message){
     currentOdom_ = message;
-    ROS_INFO("Updated odometry");
 }
     
 void TurnToHumanActionServer::robotJointStateCallback(const sensor_msgs::JointState message){
     currentJointState_ = message;
-    ROS_INFO("Updated joints state");
 }
 
-TurnToHumanActionServer::TurnToHumanActionServer(std::string name, std::string odometryTopic, std::string jointStateTopic) : 
+TurnToHumanActionServer::TurnToHumanActionServer(std::string name, std::string odometryTopic, std::string jointStateTopic, std::string velocityTopic) : 
                       as_(nh_, name, boost::bind(&TurnToHumanActionServer::executeCallback, this, _1), false), 
                       actionName_(name){
     as_.start();
     odometrySub_ = nh_.subscribe(odometryTopic, 1000, &TurnToHumanActionServer::robotOdometryCallback, this);
     jointStateSub_ = nh_.subscribe(jointStateTopic, 1000, &TurnToHumanActionServer::robotJointStateCallback, this);
+    velocityPublisher_ = nh_.advertise<geometry_msgs::Twist>(velocityTopic, 1000);
 }
 
 TurnToHumanActionServer::~TurnToHumanActionServer(){}
 
 void TurnToHumanActionServer::executeCallback(const pardon::TurnToHumanGoalConstPtr &goal){
-    ros::Rate r(1);
+    ROS_INFO("New goal requested");
+    ros::Rate r(30);
     bool success = true;
 
-    for(auto i = 0; i <= 5; i++){
+    for(auto i = 0; i <= 50; i++){
         if(as_.isPreemptRequested() || !ros::ok()){
             ROS_INFO("%s: Preempted", actionName_.c_str());
             as_.setPreempted();
@@ -38,8 +38,12 @@ void TurnToHumanActionServer::executeCallback(const pardon::TurnToHumanGoalConst
         feedback_.status = feedbackStatus;
 
         geometry_msgs::Quaternion feedbackOrientation;
-        feedbackOrientation.x = currentOdom_.pose.pose.position.x;
+        feedbackOrientation = currentOdom_.pose.pose.orientation;
         feedback_.orientation = feedbackOrientation;
+
+        geometry_msgs::Twist newVelocity;
+        newVelocity.angular.z = 0.5;
+        velocityPublisher_.publish(newVelocity);
 
         as_.publishFeedback(feedback_);
         r.sleep();
@@ -49,6 +53,10 @@ void TurnToHumanActionServer::executeCallback(const pardon::TurnToHumanGoalConst
         std_msgs::String resultStatus;
         resultStatus.data = "moved";
         result_.status = resultStatus;
+
+        geometry_msgs::Twist newVelocity;
+        newVelocity.angular.z = 0.0;
+        velocityPublisher_.publish(newVelocity);
 
         ROS_INFO("%s: Succeeded", actionName_.c_str());
         as_.setSucceeded(result_);

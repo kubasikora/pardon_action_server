@@ -7,10 +7,12 @@
 #include<geometry_msgs/Quaternion.h>
 #include<nav_msgs/Odometry.h>
 #include<sensor_msgs/JointState.h>
+#include<geometry_msgs/Twist.h>
 
 class TurnToHumanActionServer {
   protected:
     ros::NodeHandle nh_;
+
     actionlib::SimpleActionServer<pardon::TurnToHumanAction> as_;
     std::string actionName_;
     pardon::TurnToHumanFeedback feedback_;
@@ -22,11 +24,13 @@ class TurnToHumanActionServer {
     ros::Subscriber jointStateSub_;
     sensor_msgs::JointState currentJointState_;
     
+    ros::Publisher velocityPublisher_;
+
     void robotOdometryCallback(const nav_msgs::Odometry message);
     void robotJointStateCallback(const sensor_msgs::JointState message);
 
   public:
-    TurnToHumanActionServer(std::string name, std::string odometryTopic = "mobile_base_controller/odom", std::string jointStateTopic = "joint_states");
+    TurnToHumanActionServer(std::string name, std::string odometryTopic = "mobile_base_controller/odom", std::string jointStateTopic = "joint_states", std::string velocityTopic = "key_vel");
     ~TurnToHumanActionServer();
     void executeCallback(const pardon::TurnToHumanGoalConstPtr &goal);                
 };
