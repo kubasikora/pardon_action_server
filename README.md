@@ -16,5 +16,6 @@ Result definition:
 
 ## Topic subscriptions
 
-Node currently listens to one topic:
-- odometryTopic (default: `/odom`) - current position of the robot.
+Node currently listens to two topics:
+- odometry (default: `/odom`) - current position of the robot,
+- jointStates (default: `/joint_states`) - current state of joints (we are interested in head state).

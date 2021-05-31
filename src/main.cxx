@@ -4,6 +4,7 @@
 #include<std_msgs/String.h>
 #include<geometry_msgs/Quaternion.h>
 #include<nav_msgs/Odometry.h>
+#include<sensor_msgs/JointState.h>
 
 class TurnToHumanAction {
   protected:
@@ -16,14 +17,28 @@ class TurnToHumanAction {
     ros::Subscriber odometrySub_;
     nav_msgs::Odometry currentOdom_;
 
+    ros::Subscriber jointStateSub_;
+    sensor_msgs::JointState currentJointState_;
+
     void robotOdometryCallback(const nav_msgs::Odometry message){
         currentOdom_ = message;
+        ROS_INFO("Updated odometry");
+    }
+    
+    void robotJointStateCallback(const sensor_msgs::JointState message){
+        currentJointState_ = message;
+        ROS_INFO("Updated joints state");
     }
 
   public:
-    TurnToHumanAction(std::string name, std::string odometryTopic = "odom") : as_(nh_, name, boost::bind(&TurnToHumanAction::executeCallback, this, _1), false), actionName_(name){
+    TurnToHumanAction(std::string name, 
+                      std::string odometryTopic = "mobile_base_controller/odom", 
+                      std::string jointStateTopic = "joint_states") : 
+                      as_(nh_, name, boost::bind(&TurnToHumanAction::executeCallback, this, _1), false), 
+                      actionName_(name){
         as_.start();
         odometrySub_ = nh_.subscribe(odometryTopic, 1000, &TurnToHumanAction::robotOdometryCallback, this);
+        jointStateSub_ = nh_.subscribe(jointStateTopic, 1000, &TurnToHumanAction::robotJointStateCallback, this);
     }
 
     ~TurnToHumanAction(){}
