@@ -1,5 +1,5 @@
 #include<ros/ros.h>
-#include<pardon/TurnToHumanActionServer.h>
+#include<pardon_action_server/TurnToHumanActionServer.h>
 
 void TurnToHumanActionServer::robotOdometryCallback(const nav_msgs::Odometry message){
     currentOdom_ = message;
@@ -20,7 +20,7 @@ TurnToHumanActionServer::TurnToHumanActionServer(std::string name, std::string o
 
 TurnToHumanActionServer::~TurnToHumanActionServer(){}
 
-void TurnToHumanActionServer::executeCallback(const pardon::TurnToHumanGoalConstPtr &goal){
+void TurnToHumanActionServer::executeCallback(const pardon_action_server::TurnToHumanGoalConstPtr &goal){
     ROS_INFO("New goal requested");
     ros::Rate r(30);
     bool success = true;

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(pardon)
+project(pardon_action_server)
 
 find_package(catkin REQUIRED COMPONENTS
   actionlib
@@ -65,7 +65,7 @@ add_action_files(
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
-  DEPENDENCIES actionlib_msgs std_msgs nav_msgs geometry_msgs
+  DEPENDENCIES actionlib_msgs std_msgs geometry_msgs
 )
 
 ################################################
@@ -99,7 +99,7 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
  INCLUDE_DIRS include
- LIBRARIES pardon
+ LIBRARIES pardon_action_server
  CATKIN_DEPENDS actionlib actionlib_msgs roscpp std_msgs nav_msgs geometry_msgs sensor_msgs
 #  DEPENDS system_lib
 )
@@ -128,7 +128,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/main.cxx src/TurnToHumanActionServer.cxx)
+add_executable(${PROJECT_NAME} src/main.cxx src/TurnToHumanActionServer.cxx)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -141,7 +141,7 @@ add_executable(${PROJECT_NAME}_node src/main.cxx src/TurnToHumanActionServer.cxx
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_node
+target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
 
