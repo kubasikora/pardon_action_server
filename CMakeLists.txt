@@ -5,6 +5,8 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   roscpp
   std_msgs
+  nav_msgs
+  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -57,12 +59,12 @@ find_package(Boost REQUIRED COMPONENTS system)
 ## Generate actions in the 'action' folder
 add_action_files(
   DIRECTORY actions
-  FILES Fibonacci.action
+  FILES TurnToHuman.action
 )
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
-  DEPENDENCIES actionlib_msgs std_msgs
+  DEPENDENCIES actionlib_msgs std_msgs nav_msgs geometry_msgs
 )
 
 ################################################
@@ -97,7 +99,7 @@ generate_messages(
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES pardon
- CATKIN_DEPENDS actionlib actionlib_msgs roscpp std_msgs
+ CATKIN_DEPENDS actionlib actionlib_msgs roscpp std_msgs nav_msgs geometry_msgs
 #  DEPENDS system_lib
 )
 

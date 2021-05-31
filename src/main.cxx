@@ -1,34 +1,29 @@
 #include<ros/ros.h>
 #include<actionlib/server/simple_action_server.h>
-#include<pardon/FibonacciAction.h>
-#include<iostream>
+#include<pardon/TurnToHumanAction.h>
+#include<std_msgs/String.h>
+#include<geometry_msgs/Quaternion.h>
 
-class FibonacciAction {
+class TurnToHumanAction {
   protected:
     ros::NodeHandle nh_;
-    actionlib::SimpleActionServer<pardon::FibonacciAction> as_;
+    actionlib::SimpleActionServer<pardon::TurnToHumanAction> as_;
     std::string actionName_;
-    pardon::FibonacciFeedback feedback_;
-    pardon::FibonacciResult result_;
+    pardon::TurnToHumanFeedback feedback_;
+    pardon::TurnToHumanResult result_;
 
   public:
-    FibonacciAction(std::string name) : as_(nh_, name, boost::bind(&FibonacciAction::executeCallback, this, _1), false), actionName_(name){
+    TurnToHumanAction(std::string name) : as_(nh_, name, boost::bind(&TurnToHumanAction::executeCallback, this, _1), false), actionName_(name){
         as_.start();
     }
 
-    ~FibonacciAction(){}
+    ~TurnToHumanAction(){}
 
-    void executeCallback(const pardon::FibonacciGoalConstPtr &goal){
+    void executeCallback(const pardon::TurnToHumanGoalConstPtr &goal){
         ros::Rate r(1);
         bool success = true;
 
-        feedback_.sequence.clear();
-        feedback_.sequence.push_back(0);
-        feedback_.sequence.push_back(1);
-
-        ROS_INFO("%s: Executing, creating fibonacci sequence of order %i with seeds %i, %i", actionName_.c_str(), goal->order, feedback_.sequence[0], feedback_.sequence[1]);
-
-        for(auto i = 1; i <= goal->order; i++){
+        for(auto i = 0; i <= 5; i++){
             if(as_.isPreemptRequested() || !ros::ok()){
                 ROS_INFO("%s: Preempted", actionName_.c_str());
                 as_.setPreempted();
@@ -36,13 +31,23 @@ class FibonacciAction {
                 break;
             }
 
-            feedback_.sequence.push_back(feedback_.sequence[i] + feedback_.sequence[i-1]);
+            std_msgs::String feedbackStatus;
+            feedbackStatus.data = "moving";
+            feedback_.status = feedbackStatus;
+
+            geometry_msgs::Quaternion feedbackOrientation;
+            feedbackOrientation.x = 1.0 * i;
+            feedback_.orientation = feedbackOrientation;
+
             as_.publishFeedback(feedback_);
             r.sleep();
         }
 
         if(success){
-            result_.sequence = feedback_.sequence;
+            std_msgs::String resultStatus;
+            resultStatus.data = "moved";
+            result_.status = resultStatus;
+            
             ROS_INFO("%s: Succeeded", actionName_.c_str());
             as_.setSucceeded(result_);
         }
@@ -52,7 +57,7 @@ class FibonacciAction {
 int main(int argc, char** argv){
     ros::init(argc, argv, "pardon");
     
-    FibonacciAction fibonacci("pardon");
+    TurnToHumanAction actionServer("pardon");
     ros::spin();
 
     return 0;

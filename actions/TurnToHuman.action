@@ -1,0 +1,6 @@
+geometry_msgs/PoseWithCovariance human_pose
+---
+std_msgs/String status
+---
+geometry_msgs/Quaternion orientation
+std_msgs/String status
