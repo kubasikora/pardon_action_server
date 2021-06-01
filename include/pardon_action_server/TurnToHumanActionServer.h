@@ -57,7 +57,7 @@ class TurnToHumanActionServer {
     void robotJointStateCallback(const sensor_msgs::JointState message);
     void joyPriorityCallback(const std_msgs::Bool message);
 
-    void publishFeedback(const std::string state, const geometry_msgs::Quaternion orientation);
+    void publishFeedback(const std::string state);
     void publishStatus(const std::string state);
     void publishTorsoVelocityCommand(const double angularVelocity);
     void callJoyPriorityAction();

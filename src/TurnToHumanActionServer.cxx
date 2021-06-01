@@ -23,11 +23,14 @@ void TurnToHumanActionServer::joyPriorityCallback(const std_msgs::Bool message){
     }
 }
 
-void TurnToHumanActionServer::publishFeedback(const std::string state, const geometry_msgs::Quaternion orientation){
+void TurnToHumanActionServer::publishFeedback(const std::string state){
     std_msgs::String feedbackStatus;
     feedbackStatus.data = state;
     feedback_.status = feedbackStatus;
-    feedback_.orientation = orientation;
+
+    geometry_msgs::Quaternion feedbackOrientation;
+    feedbackOrientation = currentOdom_.pose.pose.orientation;
+    feedback_.orientation = feedbackOrientation;
     as_.publishFeedback(feedback_);
 }
 
@@ -81,10 +84,11 @@ void TurnToHumanActionServer::executeCallback(const pardon_action_server::TurnTo
     if(!lockedState)
         callJoyPriorityAction();
 
+    const double velocity = getParamValue<double>("turning_velocity");
     const double angle = findRequiredAngle();
     ROS_INFO("Desired change in yaw: %f degrees", (180*angle)/3.1415);
 
-    for(auto i = 0; i <= 50; i++){
+    while(ros::ok()){
         if(as_.isPreemptRequested() || !ros::ok()){
             ROS_INFO("%s: Preempted", actionName_.c_str());
             as_.setPreempted();
@@ -92,11 +96,12 @@ void TurnToHumanActionServer::executeCallback(const pardon_action_server::TurnTo
             break;
         }
 
-        geometry_msgs::Quaternion feedbackOrientation;
-        feedbackOrientation = currentOdom_.pose.pose.orientation;
-
-        publishTorsoVelocityCommand(0.0);
-        publishFeedback("moving", feedbackOrientation);
+        const double angleChange = findRequiredAngle();
+        if(abs(angleChange) < 0.05 || angleChange*angle < 0)
+            break;
+  
+        publishTorsoVelocityCommand(angleChange > 0.0 ? velocity : -velocity);
+        publishFeedback("moving");
         r.sleep();
     }
     publishTorsoVelocityCommand(0.0);
