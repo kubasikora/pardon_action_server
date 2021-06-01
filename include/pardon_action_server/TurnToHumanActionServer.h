@@ -1,6 +1,7 @@
 #ifndef __TURN_TO_HUMAN_ACTION_SERVER_H__
 #define __TURN_TO_HUMAN_ACTION_SERVER_H__
 
+#include<exception>
 #include<actionlib/server/simple_action_server.h>
 #include<actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
@@ -12,6 +13,23 @@
 #include<nav_msgs/Odometry.h>
 #include<sensor_msgs/JointState.h>
 #include<geometry_msgs/Twist.h>
+
+class InvalidParamException : public std::exception {
+    const std::string paramName_;
+  public:
+    InvalidParamException(const std::string paramName);
+    const char* what() const throw();
+};
+
+template<typename T>
+T getParamValue(const std::string name){
+    T value;
+    if(!ros::param::get(name, value))
+        throw InvalidParamException(name);
+    return value;
+}
+
+std::string getParamValue(const std::string name);
 
 class TurnToHumanActionServer {
   protected:
@@ -40,12 +58,13 @@ class TurnToHumanActionServer {
     void joyPriorityCallback(const std_msgs::Bool message);
 
     void publishFeedback(const std::string state, const geometry_msgs::Quaternion orientation);
+    void publishStatus(const std::string state);
     void publishTorsoVelocityCommand(const double angularVelocity);
 
     void callJoyPriorityAction();
 
   public:
-    TurnToHumanActionServer(std::string name);
+    TurnToHumanActionServer();
     ~TurnToHumanActionServer();
     void executeCallback(const pardon_action_server::TurnToHumanGoalConstPtr &goal);                
 

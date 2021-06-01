@@ -1,6 +1,12 @@
 #include<ros/ros.h>
 #include<pardon_action_server/TurnToHumanActionServer.h>
 
+InvalidParamException::InvalidParamException(const std::string paramName) : paramName_(paramName) {}
+
+const char* InvalidParamException::what() const throw() {
+    return paramName_.c_str();
+}
+
 void TurnToHumanActionServer::robotOdometryCallback(const nav_msgs::Odometry message){
     currentOdom_ = message;
 }
@@ -10,8 +16,10 @@ void TurnToHumanActionServer::robotJointStateCallback(const sensor_msgs::JointSt
 }
 
 void TurnToHumanActionServer::joyPriorityCallback(const std_msgs::Bool message){
-    currentJoyPriority_ = message;
-    ROS_INFO("Current joy priority equals %s", currentJoyPriority_.data ? "true" : "false");
+    if(getParamValue<bool>("use_joy_action")){
+        currentJoyPriority_ = message;
+        ROS_INFO("current joy priority equals %s", currentJoyPriority_.data ? "true" : "false");
+    }
 }
 
 void TurnToHumanActionServer::publishFeedback(const std::string state, const geometry_msgs::Quaternion orientation){
@@ -20,6 +28,14 @@ void TurnToHumanActionServer::publishFeedback(const std::string state, const geo
     feedback_.status = feedbackStatus;
     feedback_.orientation = orientation;
     as_.publishFeedback(feedback_);
+}
+
+void TurnToHumanActionServer::publishStatus(const std::string state){
+    std_msgs::String resultStatus;
+    resultStatus.data = state;
+    result_.status = resultStatus;
+    as_.setSucceeded(result_);
+    ROS_INFO("%s: Succeeded", actionName_.c_str());
 }
 
 void TurnToHumanActionServer::publishTorsoVelocityCommand(const double angularVelocity){
@@ -33,27 +49,30 @@ void TurnToHumanActionServer::callJoyPriorityAction(){
     ac_.sendGoal(goal);
 }
 
-TurnToHumanActionServer::TurnToHumanActionServer(std::string name) : 
-                      as_(nh_, name, boost::bind(&TurnToHumanActionServer::executeCallback, this, _1), false), 
-                      ac_("joy_priority_action", true),
-                      actionName_(name){
-    odometrySub_ = nh_.subscribe(odometryTopic, 1000, &TurnToHumanActionServer::robotOdometryCallback, this);
-    jointStateSub_ = nh_.subscribe(jointStateTopic, 1000, &TurnToHumanActionServer::robotJointStateCallback, this);
-    joyPrioritySub_ = nh_.subscribe(joyPriorityTopic, 1000, &TurnToHumanActionServer::joyPriorityCallback, this);
-    
-    velocityPublisher_ = nh_.advertise<geometry_msgs::Twist>(velocityTopic, 1000);
+TurnToHumanActionServer::TurnToHumanActionServer() : 
+                      as_(nh_, getParamValue<std::string>("served_action_name"), boost::bind(&TurnToHumanActionServer::executeCallback, this, _1), false), 
+                      ac_(getParamValue<std::string>("joy_priority_action"), true),
+                      actionName_(getParamValue<std::string>("served_action_name")){
+    odometrySub_ = nh_.subscribe(getParamValue<std::string>("odometry_topic"), 1000, &TurnToHumanActionServer::robotOdometryCallback, this);
+    jointStateSub_ = nh_.subscribe(getParamValue<std::string>("joint_state_topic"), 1000, &TurnToHumanActionServer::robotJointStateCallback, this);
+    joyPrioritySub_ = nh_.subscribe(getParamValue<std::string>("joy_priority_topic"), 1000, &TurnToHumanActionServer::joyPriorityCallback, this);
+
+    velocityPublisher_ = nh_.advertise<geometry_msgs::Twist>(getParamValue<std::string>("command_velocity_topic"), 1000);
     
     as_.start();
-    ROS_INFO("%s server ready", name.c_str());
+    ROS_INFO("%s server ready", getParamValue<std::string>("served_action_name").c_str());
 
-    ac_.waitForServer();
-    ROS_INFO("%s client ready", joyPriorityAction.c_str());
+    if(getParamValue<bool>("use_joy_action")){
+        ROS_INFO("joy priority action is being used");
+        ac_.waitForServer();
+        ROS_INFO("%s client ready", getParamValue<std::string>("joy_priority_action").c_str());
+    }
 }
 
 TurnToHumanActionServer::~TurnToHumanActionServer(){}
 
 void TurnToHumanActionServer::executeCallback(const pardon_action_server::TurnToHumanGoalConstPtr &goal){
-    ROS_INFO("New goal requested");
+    ROS_INFO("new goal requested");
     ros::Rate r(30);
     bool success = true;
 
@@ -76,20 +95,11 @@ void TurnToHumanActionServer::executeCallback(const pardon_action_server::TurnTo
         publishFeedback("moving", feedbackOrientation);
         r.sleep();
     }
+    publishTorsoVelocityCommand(0.0);
 
     if(!lockedState)
         callJoyPriorityAction();
 
-    if(success){
-        std_msgs::String resultStatus;
-        resultStatus.data = "moved";
-        result_.status = resultStatus;
-
-        geometry_msgs::Twist newVelocity;
-        newVelocity.angular.z = 0.0;
-        velocityPublisher_.publish(newVelocity);
-
-        ROS_INFO("%s: Succeeded", actionName_.c_str());
-        as_.setSucceeded(result_);
-    }
+    if(success)
+        publishStatus("finished");
 }

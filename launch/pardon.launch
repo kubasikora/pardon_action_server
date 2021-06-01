@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <param name="odometry_topic" type="string" value="mobile_base_controller/odom" />
+    <param name="joint_state_topic" type="string" value="joint_states" />
+    <param name="joy_priority_topic" type="string" value="joy_priority" />
+    <param name="command_velocity_topic" type="string" value="joy_vel" />
+    <param name="joy_priority_action" type="string" value="joy_priority_action" />
+    <param name="served_action_name" type="string" value="pardon_action" />
+    <param name="use_joy_action" type="bool" value="true" />
+    <node pkg="pardon_action_server" name="action_server" type="pardon_action_server" output="screen" />
+</launch>
