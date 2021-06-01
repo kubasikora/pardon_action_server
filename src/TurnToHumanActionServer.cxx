@@ -1,5 +1,6 @@
 #include<ros/ros.h>
 #include<pardon_action_server/TurnToHumanActionServer.h>
+#include<math.h>
 
 InvalidParamException::InvalidParamException(const std::string paramName) : paramName_(paramName) {}
 
@@ -80,6 +81,9 @@ void TurnToHumanActionServer::executeCallback(const pardon_action_server::TurnTo
     if(!lockedState)
         callJoyPriorityAction();
 
+    const double angle = findRequiredAngle();
+    ROS_INFO("Desired change in yaw: %f degrees", (180*angle)/3.1415);
+
     for(auto i = 0; i <= 50; i++){
         if(as_.isPreemptRequested() || !ros::ok()){
             ROS_INFO("%s: Preempted", actionName_.c_str());
@@ -91,7 +95,7 @@ void TurnToHumanActionServer::executeCallback(const pardon_action_server::TurnTo
         geometry_msgs::Quaternion feedbackOrientation;
         feedbackOrientation = currentOdom_.pose.pose.orientation;
 
-        publishTorsoVelocityCommand(0.5);
+        publishTorsoVelocityCommand(0.0);
         publishFeedback("moving", feedbackOrientation);
         r.sleep();
     }
@@ -102,4 +106,11 @@ void TurnToHumanActionServer::executeCallback(const pardon_action_server::TurnTo
 
     if(success)
         publishStatus("finished");
+}
+
+const double TurnToHumanActionServer::findRequiredAngle() const {
+    tf::StampedTransform tf;
+    this->TFlistener.lookupTransform(getParamValue<std::string>("human_tf"), "base_link", ros::Time(0), tf);
+    tf::Transform tfi = tf.inverse();
+    return atan2(tfi.getOrigin().y(), tfi.getOrigin().x());
 }

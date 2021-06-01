@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   geometry_msgs
   sensor_msgs
+  tf
 )
 
 find_package(Boost REQUIRED COMPONENTS 
@@ -24,7 +25,7 @@ generate_messages(DEPENDENCIES actionlib_msgs std_msgs geometry_msgs)
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES pardon_action_server
- CATKIN_DEPENDS actionlib actionlib_msgs roscpp std_msgs nav_msgs geometry_msgs sensor_msgs
+ CATKIN_DEPENDS actionlib actionlib_msgs roscpp std_msgs nav_msgs geometry_msgs sensor_msgs tf
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})

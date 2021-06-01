@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
+    <arg name="human_tf" value="human" />
+
     <param name="odometry_topic" type="string" value="mobile_base_controller/odom" />
     <param name="joint_state_topic" type="string" value="joint_states" />
     <param name="joy_priority_topic" type="string" value="joy_priority" />
@@ -7,5 +9,8 @@
     <param name="joy_priority_action" type="string" value="joy_priority_action" />
     <param name="served_action_name" type="string" value="pardon_action" />
     <param name="use_joy_action" type="bool" value="true" />
+    <param name="human_tf" type="string" value="$(arg human_tf)" />
+    
     <node pkg="pardon_action_server" name="action_server" type="pardon_action_server" output="screen" />
+    <node pkg="tf" type="static_transform_publisher" name="human_publisher" args="3 2 0 0 0 0 1 map $(arg human_tf) 100" />
 </launch>

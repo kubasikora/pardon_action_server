@@ -6,6 +6,7 @@
 #include<actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 #include<pardon_action_server/TurnToHumanAction.h>
+#include<tf/transform_listener.h>
 #include<twist_mux_msgs/JoyPriorityAction.h>
 #include<std_msgs/String.h>
 #include<std_msgs/Bool.h>
@@ -29,11 +30,10 @@ T getParamValue(const std::string name){
     return value;
 }
 
-std::string getParamValue(const std::string name);
-
 class TurnToHumanActionServer {
   protected:
     ros::NodeHandle nh_;
+    tf::TransformListener TFlistener;
 
     std::string actionName_;
     actionlib::SimpleActionServer<pardon_action_server::TurnToHumanAction> as_;
@@ -52,7 +52,7 @@ class TurnToHumanActionServer {
     std_msgs::Bool currentJoyPriority_;
 
     ros::Publisher velocityPublisher_;
-
+    
     void robotOdometryCallback(const nav_msgs::Odometry message);
     void robotJointStateCallback(const sensor_msgs::JointState message);
     void joyPriorityCallback(const std_msgs::Bool message);
@@ -60,8 +60,9 @@ class TurnToHumanActionServer {
     void publishFeedback(const std::string state, const geometry_msgs::Quaternion orientation);
     void publishStatus(const std::string state);
     void publishTorsoVelocityCommand(const double angularVelocity);
-
     void callJoyPriorityAction();
+
+    const double findRequiredAngle() const;
 
   public:
     TurnToHumanActionServer();
