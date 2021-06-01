@@ -14,13 +14,30 @@ Result definition:
 - std_msgs/String
   - status of an finished action, information about which link has turned (head/torso)
 
+## Called actions
+
+Node currently calls one action:
+- joystickPriority (`twist_mux_msgs::JoyPriorityAction`, default: `/joy_priority_action`) - changes priority of joystick controller. 
+
 ## Topic subscriptions
 
 Node currently listens to two topics:
 - odometry (`nav_msgs/Odometry`, default: `/mobile_base_controller/odom`) - current position of the robot,
-- jointStates (`sensor_msgs/JointState`, default: `/joint_states`) - current state of joints (we are interested in head state).
+- jointStates (`sensor_msgs/JointState`, default: `/joint_states`) - current state of joints (we are interested in head state),
+- joyPriorityCallback(`std_msgs::Bool`, default: `/joy_priority`) - state of joystick priority.
 
 ## Topic publications
 
 Node publishes on one topic:
 - velocity (`geometry_msgs/Twist`, default: `/key_vel`) - velocity commands to mobile base controller.  
+
+## Parameters
+- `odometry_topic` - topic name to get odometry from robot,
+- `joint_state_topic` - topic name to get robot's joint state,
+- `joy_priority_topic` - topic name to get joystick priority,
+- `command_velocity_topic` - topic name to publish velocities,
+- `joy_priority_action` - action name to change joystick priority,
+- `served_action_name` - name of action that this node serves,
+- `use_joy_action` - flag whether node should handle joystick priority,
+- `human_tf` - name of human frame,
+- `turning_velocity` - max velocity that should be used for turning.
