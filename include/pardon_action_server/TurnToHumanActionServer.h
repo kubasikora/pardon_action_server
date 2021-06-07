@@ -1,35 +1,21 @@
-#ifndef __TURN_TO_HUMAN_ACTION_SERVER_H__
-#define __TURN_TO_HUMAN_ACTION_SERVER_H__
+#ifndef __PARDON_ACTION_SERVER__TURN_TO_HUMAN_ACTION_SERVER_H__
+#define __PARDON_ACTION_SERVER__TURN_TO_HUMAN_ACTION_SERVER_H__
 
-#include<exception>
 #include<actionlib/server/simple_action_server.h>
 #include<actionlib/client/simple_action_client.h>
 #include<actionlib/client/terminal_state.h>
 #include<pardon_action_server/TurnToHumanAction.h>
-#include<tf/transform_listener.h>
 #include<twist_mux_msgs/JoyPriorityAction.h>
 #include<control_msgs/PointHeadAction.h>
+
 #include<std_msgs/String.h>
 #include<std_msgs/Bool.h>
 #include<geometry_msgs/Quaternion.h>
+#include<geometry_msgs/Twist.h>
 #include<nav_msgs/Odometry.h>
 #include<sensor_msgs/JointState.h>
-#include<geometry_msgs/Twist.h>
 
-class InvalidParamException : public std::exception {
-    const std::string paramName_;
-  public:
-    InvalidParamException(const std::string paramName);
-    const char* what() const throw();
-};
-
-template<typename T>
-T getParamValue(const std::string name){
-    T value;
-    if(!ros::param::get(name, value))
-        throw InvalidParamException(name);
-    return value;
-}
+#include<tf/transform_listener.h>
 
 class TurnToHumanActionServer {
   protected:

@@ -29,5 +29,5 @@ catkin_package(
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
-add_executable(${PROJECT_NAME} src/main.cxx src/TurnToHumanActionServer.cxx)
+add_executable(${PROJECT_NAME} src/main.cxx src/TurnToHumanActionServer.cxx src/util.cxx)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
