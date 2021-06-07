@@ -4,10 +4,11 @@
 #include<exception>
 #include<actionlib/server/simple_action_server.h>
 #include<actionlib/client/simple_action_client.h>
-#include <actionlib/client/terminal_state.h>
+#include<actionlib/client/terminal_state.h>
 #include<pardon_action_server/TurnToHumanAction.h>
 #include<tf/transform_listener.h>
 #include<twist_mux_msgs/JoyPriorityAction.h>
+#include<control_msgs/PointHeadAction.h>
 #include<std_msgs/String.h>
 #include<std_msgs/Bool.h>
 #include<geometry_msgs/Quaternion.h>
@@ -40,7 +41,8 @@ class TurnToHumanActionServer {
     pardon_action_server::TurnToHumanFeedback feedback_;
     pardon_action_server::TurnToHumanResult result_;
 
-    actionlib::SimpleActionClient<twist_mux_msgs::JoyPriorityAction> ac_;
+    actionlib::SimpleActionClient<twist_mux_msgs::JoyPriorityAction> acJoy_;
+    actionlib::SimpleActionClient<control_msgs::PointHeadAction> acHead_;
 
     ros::Subscriber odometrySub_;
     nav_msgs::Odometry currentOdom_;
@@ -63,17 +65,14 @@ class TurnToHumanActionServer {
     void callJoyPriorityAction();
 
     const double findRequiredAngle() const;
+    bool moveTorso();
+    bool moveHead();
+    void resetHead();
 
   public:
     TurnToHumanActionServer();
     ~TurnToHumanActionServer();
-    void executeCallback(const pardon_action_server::TurnToHumanGoalConstPtr &goal);                
-
-    const std::string odometryTopic = "mobile_base_controller/odom";
-    const std::string jointStateTopic = "joint_states";
-    const std::string joyPriorityTopic = "joy_priority";
-    const std::string joyPriorityAction = "joy_priority_action";
-    const std::string velocityTopic = "joy_vel";
+    void executeCallback(const pardon_action_server::TurnToHumanGoalConstPtr &goal);
 };
 
 #endif

@@ -7,11 +7,14 @@
     <param name="joy_priority_topic" type="string" value="joy_priority" />
     <param name="command_velocity_topic" type="string" value="joy_vel" />
     <param name="joy_priority_action" type="string" value="joy_priority_action" />
+    <param name="point_head_action" type="string" value="head_controller/point_head_action" />
     <param name="served_action_name" type="string" value="pardon_action" />
     <param name="use_joy_action" type="bool" value="true" />
     <param name="human_tf" type="string" value="$(arg human_tf)" />
-    <param name="turning_velocity" type="double" value="0.8" />
-
+    <param name="torso_turning_velocity" type="double" value="0.4" />
+    <param name="head_turning_velocity" type="double" value="0.4" />
+    <param name="base_link" type="string" value="base_link" />
+    
     <node pkg="pardon_action_server" name="action_server" type="pardon_action_server" output="screen" />
     <node pkg="tf" type="static_transform_publisher" name="human_publisher" args="3 2 0 0 0 0 1 map $(arg human_tf) 100" />
 </launch>
