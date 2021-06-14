@@ -12,10 +12,15 @@ class InvalidParamException : public std::exception {
 };
 
 template<typename T>
-T getParamValue(const std::string name){
+T getParamValue(const std::string name, bool global = false){
     T value;
+    if(global){
+        if(!ros::param::get("/" + name, value))
+            throw InvalidParamException(name);
+    } else {
     if(!ros::param::get(name, value))
         throw InvalidParamException(name);
+    }
     return value;
 }
 

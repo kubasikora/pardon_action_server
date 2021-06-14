@@ -11,15 +11,9 @@ find_package(catkin REQUIRED COMPONENTS
   tf
 )
 
-find_package(Boost REQUIRED COMPONENTS 
-  system
-)
+find_package(Boost REQUIRED COMPONENTS system)
 
-add_action_files(
-  DIRECTORY actions
-  FILES TurnToHuman.action
-)
-
+add_action_files(DIRECTORY actions FILES TurnToHuman.action)
 generate_messages(DEPENDENCIES actionlib_msgs std_msgs geometry_msgs)
 
 catkin_package(
