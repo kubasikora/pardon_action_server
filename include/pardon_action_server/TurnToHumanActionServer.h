@@ -40,7 +40,7 @@ class TurnToHumanActionServer {
     std_msgs::Bool currentJoyPriority_;
 
     ros::Publisher velocityPublisher_;
-    
+
     void robotOdometryCallback(const nav_msgs::Odometry message);
     void robotJointStateCallback(const sensor_msgs::JointState message);
     void joyPriorityCallback(const std_msgs::Bool message);
@@ -49,6 +49,7 @@ class TurnToHumanActionServer {
     void publishStatus(const std::string state);
     void publishTorsoVelocityCommand(const double angularVelocity);
     void callJoyPriorityAction();
+    geometry_msgs::Pose getPose(const std::string point, const std::string origin);
 
     const double findRequiredAngle() const;
     bool moveTorso();

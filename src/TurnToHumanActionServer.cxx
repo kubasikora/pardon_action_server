@@ -95,12 +95,34 @@ bool TurnToHumanActionServer::moveTorso(){
     return success;
 }
 
+geometry_msgs::Pose TurnToHumanActionServer::getPose(const std::string point, const std::string origin){
+    tf::StampedTransform transformation;
+    TFlistener.lookupTransform(point, origin, ros::Time(0), transformation);
+    tf::Transform inversedTransformation = transformation.inverse();
+
+    geometry_msgs::Pose pose;
+    pose.position.x    = inversedTransformation.getOrigin().x();
+    pose.position.y    = inversedTransformation.getOrigin().y();
+    pose.position.z    = inversedTransformation.getOrigin().z();
+    pose.orientation.x = inversedTransformation.getRotation().x();
+    pose.orientation.y = inversedTransformation.getRotation().y();
+    pose.orientation.z = inversedTransformation.getRotation().z();
+    pose.orientation.w = inversedTransformation.getRotation().w();
+    return pose;
+}
+
 bool TurnToHumanActionServer::moveHead(){
     control_msgs::PointHeadGoal goal;
-    goal.target.header.frame_id = getParamValue<std::string>("human_tf");
-    goal.pointing_axis.x = 1.0; goal.pointing_axis.y = 0.0; goal.pointing_axis.z = 0.0;
-    goal.pointing_frame = getParamValue<std::string>("/head_controller/point_head_action/tilt_link");
-    goal.max_velocity = getParamValue<double>("head_turning_velocity");
+    geometry_msgs::Pose pose = getPose(getParamValue<std::string>("human_tf"), "base_link");
+    goal.target.header.frame_id = getParamValue<std::string>("base_link");
+    goal.target.point.x         = pose.position.x; 
+    goal.target.point.y         = pose.position.y; 
+    goal.target.point.z         = pose.position.z;
+    goal.pointing_axis.x        = 0.0; 
+    goal.pointing_axis.y        = 0.0; 
+    goal.pointing_axis.z        = 1.0;
+    goal.pointing_frame         = getParamValue<std::string>("/head_controller/point_head_action/tilt_link");
+    goal.max_velocity           = getParamValue<double>("head_turning_velocity");
     acHead_.sendGoal(goal);
     
     bool success = true;
@@ -178,4 +200,6 @@ void TurnToHumanActionServer::executeCallback(const pardon_action_server::TurnTo
     
     if(success)
         publishStatus("finished");
+    else
+        as_.setAborted();
 }
