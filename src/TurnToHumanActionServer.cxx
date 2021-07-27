@@ -63,8 +63,6 @@ bool TurnToHumanActionServer::moveTorso(){
     const double velocity = getParamValue<double>("torso_turning_velocity");
     const double initialAngle = findRequiredAngle();
 
-    resetHead();
-
     if(!lockedState)
         callJoyPriorityAction();
 
@@ -92,6 +90,8 @@ bool TurnToHumanActionServer::moveTorso(){
     if(!lockedState)
         callJoyPriorityAction();
 
+    resetHead();
+
     return success;
 }
 
@@ -113,37 +113,20 @@ geometry_msgs::Pose TurnToHumanActionServer::getPose(const std::string point, co
 
 bool TurnToHumanActionServer::moveHead(){
     control_msgs::PointHeadGoal goal;
-    geometry_msgs::Pose pose = getPose(getParamValue<std::string>("human_tf"), "base_link");
+    geometry_msgs::Pose pose = getPose(getParamValue<std::string>("human_tf"), getParamValue<std::string>("base_link"));
+    ROS_INFO("%f %f %f", pose.position.x, pose.position.y, pose.position.z);
     goal.target.header.frame_id = getParamValue<std::string>("base_link");
     goal.target.point.x         = pose.position.x; 
     goal.target.point.y         = pose.position.y; 
     goal.target.point.z         = pose.position.z;
-    goal.pointing_axis.x        = 0.0; 
+    goal.pointing_axis.x        = 1.0; 
     goal.pointing_axis.y        = 0.0; 
-    goal.pointing_axis.z        = 1.0;
+    goal.pointing_axis.z        = 0.0;
     goal.pointing_frame         = getParamValue<std::string>("/head_controller/point_head_action/tilt_link");
     goal.max_velocity           = getParamValue<double>("head_turning_velocity");
     acHead_.sendGoal(goal);
-    
-    bool success = true;
-    while(ros::ok()){
-        if(as_.isPreemptRequested() || !ros::ok()){
-            ROS_INFO("%s: Preempted", actionName_.c_str());
-            as_.setPreempted();
-            success = false;
-            break;
-        }
-        publishFeedback("moving");
-        actionlib::SimpleClientGoalState state = acHead_.getState();
-        if(state.isDone()){
-            if(state.toString() != "SUCCEEDED"){
-                success = false;
-            }
-            break;
-        }
-    }
-
-    return success;
+    acHead_.waitForResult(ros::Duration(1.0));
+    return true;
 }
 
 void TurnToHumanActionServer::resetHead(){
@@ -154,12 +137,14 @@ void TurnToHumanActionServer::resetHead(){
     goal.pointing_frame = getParamValue<std::string>("/head_controller/point_head_action/tilt_link");
     goal.max_velocity = getParamValue<double>("head_turning_velocity");
     acHead_.sendGoal(goal);
+    acHead_.waitForResult(ros::Duration(1.0));
 }
 
 TurnToHumanActionServer::TurnToHumanActionServer() : 
                       as_(nh_, getParamValue<std::string>("served_action_name"), boost::bind(&TurnToHumanActionServer::executeCallback, this, _1), false), 
                       acJoy_(getParamValue<std::string>("joy_priority_action"), true),
                       acHead_(getParamValue<std::string>("point_head_action"), true),
+                      acDisable_(getParamValue<std::string>("disable_autohead_action"), true),
                       actionName_(getParamValue<std::string>("served_action_name")){
     odometrySub_ = nh_.subscribe(getParamValue<std::string>("odometry_topic"), 1000, &TurnToHumanActionServer::robotOdometryCallback, this);
     jointStateSub_ = nh_.subscribe(getParamValue<std::string>("joint_state_topic"), 1000, &TurnToHumanActionServer::robotJointStateCallback, this);
@@ -171,6 +156,9 @@ TurnToHumanActionServer::TurnToHumanActionServer() :
 
     acHead_.waitForServer();
     ROS_INFO("%s client ready", getParamValue<std::string>("point_head_action").c_str());
+
+    acDisable_.waitForServer();
+    ROS_INFO("%s client ready", getParamValue<std::string>("disable_autohead_action").c_str());
 
     if(getParamValue<bool>("use_joy_action")){
         ROS_INFO("joy priority action is being used");
@@ -185,6 +173,9 @@ void TurnToHumanActionServer::executeCallback(const pardon_action_server::TurnTo
     ROS_INFO("new goal requested");
     bool success = true;
 
+    pal_common_msgs::DisableGoal disableGoal;
+    acDisable_.sendGoal(disableGoal);
+
     const double angle = findRequiredAngle();
     ROS_INFO("Desired change in yaw: %f degrees", (180*angle)/3.1415);
     const double maxHeadRotationRadian = getParamValue<double>("max_head_rotation");
@@ -197,6 +188,8 @@ void TurnToHumanActionServer::executeCallback(const pardon_action_server::TurnTo
         ROS_INFO("Moving head");
         success = moveHead();
     }
+
+    ROS_INFO("Finished");
     
     if(success)
         publishStatus("finished");

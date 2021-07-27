@@ -7,6 +7,7 @@
 #include<pardon_action_server/TurnToHumanAction.h>
 #include<twist_mux_msgs/JoyPriorityAction.h>
 #include<control_msgs/PointHeadAction.h>
+#include<pal_common_msgs/DisableAction.h>
 
 #include<std_msgs/String.h>
 #include<std_msgs/Bool.h>
@@ -29,6 +30,7 @@ class TurnToHumanActionServer {
 
     actionlib::SimpleActionClient<twist_mux_msgs::JoyPriorityAction> acJoy_;
     actionlib::SimpleActionClient<control_msgs::PointHeadAction> acHead_;
+    actionlib::SimpleActionClient<pal_common_msgs::DisableAction> acDisable_;
 
     ros::Subscriber odometrySub_;
     nav_msgs::Odometry currentOdom_;
