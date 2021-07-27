@@ -148,7 +148,7 @@ bool TurnToHumanActionServer::moveHead(){
 
 void TurnToHumanActionServer::resetHead(){
     control_msgs::PointHeadGoal goal;
-    goal.target.header.frame_id = getParamValue<std::string>("base_link");
+    goal.target.header.frame_id = "base_footprint";
     goal.target.point.x = 1.0; goal.target.point.y = 0.0; goal.target.point.z = 1.0;
     goal.pointing_axis.x = 1.0; goal.pointing_axis.y = 0.0; goal.pointing_axis.z = 0.0;
     goal.pointing_frame = getParamValue<std::string>("/head_controller/point_head_action/tilt_link");
