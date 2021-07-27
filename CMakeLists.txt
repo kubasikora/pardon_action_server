@@ -10,6 +10,7 @@ find_package(catkin
     nav_msgs
     geometry_msgs
     sensor_msgs
+    pal_common_msgs
     tf
 )
 
